@@ -2,6 +2,19 @@
 
 > Example using react components for Dronelink
 
+## Requirements
+
+- Mapbox access token: https://account.mapbox.com/access-tokens/create
+- HERE app id: https://developer.here.com/
+
+## Installation
+
+- Provide Mapbox access token and HERE app id in .env
+
+## Author
+
+Dronelink, dev@dronelink.com
+
 ## License
 
 MIT © [](https://github.com/)
