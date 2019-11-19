@@ -99,6 +99,8 @@ class App extends Component {
             const destination = new Dronelink.DestinationComponent()
             list.childComponents.push(destination)
             destination.descriptors = new Dronelink.Descriptors("Example Destination")
+            destination.assetSource = new Dronelink.AssetSource()
+            destination.assetSource.descriptors.tags = ["image"]
             destination.destinationOffset = new Dronelink.Vector2(0, 100)
             destination.altitudeRange.altitude = new Dronelink.Altitude(100.0)
             //only allow horizontal motion when within +/- 5 meters of the target altitude (100 meters)
@@ -125,6 +127,8 @@ class App extends Component {
             const orbit = new Dronelink.OrbitComponent()
             list.childComponents.push(orbit)
             orbit.descriptors = new Dronelink.Descriptors("Example Orbit")
+            orbit.assetSource = new Dronelink.AssetSource()
+            orbit.assetSource.descriptors.tags = ["image_series"]
             orbit.approachComponent.destinationOffset = new Dronelink.Vector2(Math.PI / 2, 200)
             orbit.approachComponent.altitudeRange.altitude = new Dronelink.Altitude(100.0)
             orbit.centerOffset = new Dronelink.Vector2(Math.PI / 2, 100)
@@ -165,7 +169,19 @@ class App extends Component {
             const path = new Dronelink.PathComponent()
             list.childComponents.push(path)
             path.descriptors = new Dronelink.Descriptors("Example Path")
+            path.assetSource = new Dronelink.AssetSource()
+            path.assetSource.descriptors.tags = ["video"]
             path.approachComponent.destinationOffset = new Dronelink.Vector2(Math.PI, 200)
+            path.approachComponent.immediateComponent = (() => {
+                const cameraSettings = new Dronelink.ListComponent()
+                const cameraModeCommand = new Dronelink.ModeCameraCommand()
+                cameraModeCommand.mode = Dronelink.CameraMode.Video
+                cameraSettings.childComponents.push(new Dronelink.CommandComponent(cameraModeCommand))
+                const cameraVideoFileFormatCommand = new Dronelink.VideoFileFormatCameraCommand()
+                cameraVideoFileFormatCommand.videoFileFormat = Dronelink.CameraVideoFileFormat.MP4
+                cameraSettings.childComponents.push(new Dronelink.CommandComponent(cameraVideoFileFormatCommand))
+                return cameraSettings
+            })()
             path.cornering = Dronelink.PathCornering.Intersect
             const pointOfInterest = new Dronelink.PointOfInterest()
             pointOfInterest.referencedOffset.coordinateOffset = new Dronelink.Vector2(Math.PI, 50)
@@ -178,17 +194,21 @@ class App extends Component {
             path.addWaypoint(waypoint2, context)
             let marker = new Dronelink.PathComponentMarker()
             marker.pointOfInterestID = pointOfInterest.id
+            marker.component = new Dronelink.CommandComponent(new Dronelink.StartCaptureCameraCommand())
             path.addMarker(marker)
             marker = new Dronelink.PathComponentMarker()
             marker.distance = 200
             marker.altitude = new Dronelink.Altitude(100.0)
             marker.interpolation.f = Dronelink.InterpolationFunction.Sigmoid
+            marker.component = new Dronelink.CommandComponent(new Dronelink.StopCaptureCameraCommand())
             path.addMarker(marker)
 
             //capture a map
             const map = new Dronelink.MapComponent()
             list.childComponents.push(map)
             map.descriptors = new Dronelink.Descriptors("Example Map")
+            map.assetSource = new Dronelink.AssetSource()
+            map.assetSource.descriptors.tags = ["map"]
             map.droneMotionLimits = new Dronelink.MotionLimits6Optional()
             map.droneMotionLimits.horizontal = new Dronelink.MotionLimitsOptional()
             map.droneMotionLimits.horizontal.velocity = new Dronelink.Limits(10, 0)
