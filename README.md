@@ -4,12 +4,13 @@
 
 ## Requirements
 
-- Mapbox access token: https://account.mapbox.com/access-tokens/create
-- HERE app id: https://developer.here.com/
+-   Mapbox access token: https://account.mapbox.com/access-tokens/create
+-   HERE app id: https://developer.here.com/
 
-## Installation
+## Setup
 
-- Provide Mapbox access token and HERE app id in .env
+-   npm install
+-   Provide Mapbox access token and HERE app id in .env
 
 ## Author
 

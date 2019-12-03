@@ -6,12 +6,13 @@
 import React, { Component, Fragment } from "react"
 import * as Dronelink from "dronelink-kernel"
 import "typeface-roboto"
-import { ComponentEditor, MapWidget, NotificationWidget, MissionUtils } from "react-dronelink"
+import { ComponentEditor, MapWidget, NotificationWidget, MissionUtils, ComponentImportFileDialog } from "react-dronelink"
 import { MuiThemeProvider, createMuiTheme, withStyles } from "@material-ui/core/styles"
 import { emphasize } from "@material-ui/core/styles/colorManipulator"
 import { deepPurple as ColorPrimary, pink as ColorSecondary } from "@material-ui/core/colors"
 import CssBaseline from "@material-ui/core/CssBaseline"
 import { Dialog, Button, DialogContent } from "@material-ui/core"
+import { Share as ShareIcon } from "@material-ui/icons"
 
 MissionUtils.UI.headerHeight = 64
 
@@ -51,7 +52,8 @@ class App extends Component {
     state = {
         mapModal: false,
         mapStyle: null,
-        component: null
+        component: null,
+        importFile: null
     }
 
     onMapLoaded = style => {
@@ -62,20 +64,19 @@ class App extends Component {
         this.setState({ mapModal: enabled })
     }
 
-    onImport = e => {
-        const file = e.target.files[0]
-        const reader = new FileReader()
-        reader.onloadend = e => {
-            const component = Dronelink.Serialization.read(reader.result)
-            if (component) {
-                this.setState({
-                    component: Dronelink.Serialization.clone(component, true)
-                })
-                return
-            }
-            window.notificationWidget.showSnackbar("Unable to import: " + file.name)
+    onImportToggle = e => {
+        this.setState({ importFile: e ? e.target.files[0] : null })
+        if (e) {
+            //clear out the value in case they want to cancel (so onChange will fire again)
+            e.target.value = ""
         }
-        reader.readAsText(file)
+    }
+
+    onImportFinish = component => {
+        this.setState({
+            importFile: null,
+            component: Dronelink.Serialization.clone(component, true)
+        })
     }
 
     onGenerate = () => {
@@ -247,9 +248,28 @@ class App extends Component {
         this.setState({ component: null })
     }
 
+    onCustomMenuItem = e => {
+        alert("Do something cool, like log the component json!")
+        Dronelink.Serialization.WriteCompressByDefault = false //set this to write plain text vs compressed
+        console.log(Dronelink.Serialization.write(this.state.component))
+        //console.log(Dronelink.Serialization.serialize(this.state.component)) //use serialize directly to write plain text (ignoring WriteCompressByDefault)
+    }
+
+    getMenuItems = () => {
+        const menuItems = []
+
+        menuItems.push({
+            title: "Custom Menu Item",
+            icon: <ShareIcon />,
+            onClick: this.onCustomMenuItem
+        })
+
+        return menuItems
+    }
+
     render() {
         const { classes } = this.props
-        const { mapModal, mapStyle, component } = this.state
+        const { mapModal, mapStyle, component, importFile } = this.state
         return (
             <MuiThemeProvider theme={themes.light}>
                 <CssBaseline />
@@ -257,26 +277,35 @@ class App extends Component {
                 <MapWidget onLoaded={this.onMapLoaded} onModal={this.onMapModal}></MapWidget>
                 {mapStyle && (
                     <Fragment>
-                        <Dialog open={!component}>
+                        <Dialog open={!component && !importFile}>
                             <DialogContent>
                                 <Fragment>
-                                    <input type="file" id="import" style={{ display: "none" }} onChange={this.onImport} />
+                                    <input type="file" id="import" style={{ display: "none" }} onChange={this.onImportToggle} />
                                     <label htmlFor="import">
                                         <Button className={classes.action} component="span" color="primary" variant="contained" fullWidth>
-                                            Import Plan
+                                            Import
                                         </Button>
                                     </label>
                                 </Fragment>
                                 <Button className={classes.action} variant="contained" fullWidth onClick={this.onGenerate}>
-                                    Generate Plan
+                                    Generate
                                 </Button>
                             </DialogContent>
                         </Dialog>
                         {component && (
                             //using the map style as a key to give down-stream users a chance to re-add layers when it changes
                             <main key={mapStyle} className={classes.main} style={mapModal ? { display: "none" } : undefined}>
-                                <ComponentEditor component={component} onChange={this.onChange} onClose={this.onClose} />
+                                <ComponentEditor component={component} onChange={this.onChange} onClose={this.onClose} menuItems={this.getMenuItems()} />
                             </main>
+                        )}
+                        {importFile && (
+                            <ComponentImportFileDialog
+                                file={importFile}
+                                onImport={this.onImportFinish}
+                                onClose={() => {
+                                    this.onImportToggle()
+                                }}
+                            />
                         )}
                     </Fragment>
                 )}
