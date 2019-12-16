@@ -6,13 +6,14 @@
 import React, { Component, Fragment } from "react"
 import * as Dronelink from "dronelink-kernel"
 import "typeface-roboto"
-import { ComponentEditor, MapWidget, NotificationWidget, MissionUtils, ComponentImportFileDialog } from "react-dronelink"
+import { ComponentEditor, MapWidget, NotificationWidget, MissionUtils, ComponentUtils, ComponentImportFileDialog } from "react-dronelink"
 import { MuiThemeProvider, createMuiTheme, withStyles } from "@material-ui/core/styles"
 import { emphasize } from "@material-ui/core/styles/colorManipulator"
 import { deepPurple as ColorPrimary, pink as ColorSecondary } from "@material-ui/core/colors"
 import CssBaseline from "@material-ui/core/CssBaseline"
 import { Dialog, Button, DialogContent } from "@material-ui/core"
 import { Share as ShareIcon } from "@material-ui/icons"
+import FileSaver from "file-saver"
 
 MissionUtils.UI.headerHeight = 64
 
@@ -44,7 +45,7 @@ const styles = theme => ({
         bottom: 0
     },
     action: {
-        marginBottom: theme.spacing(2)
+        marginBottom: theme.spacing(1)
     }
 })
 
@@ -52,8 +53,9 @@ class App extends Component {
     state = {
         mapModal: false,
         mapStyle: null,
-        component: null,
-        importFile: null
+        importFile: null,
+        configurationWizard: false,
+        component: null
     }
 
     onMapLoaded = style => {
@@ -238,6 +240,12 @@ class App extends Component {
         this.setState({ component: plan })
     }
 
+    onCreate = () => {
+        ComponentUtils.createPlan(plan => {
+            this.setState({ component: plan, configurationWizard: true })
+        })
+    }
+
     onChange = replacementComponent => {
         this.setState(state => ({
             component: replacementComponent || state.component
@@ -245,7 +253,7 @@ class App extends Component {
     }
 
     onClose = () => {
-        this.setState({ component: null })
+        this.setState({ component: null, configurationWizard: false })
     }
 
     onCustomMenuItem = e => {
@@ -269,7 +277,7 @@ class App extends Component {
 
     render() {
         const { classes } = this.props
-        const { mapModal, mapStyle, component, importFile } = this.state
+        const { mapModal, mapStyle, component, importFile, configurationWizard } = this.state
         return (
             <MuiThemeProvider theme={themes.light}>
                 <CssBaseline />
@@ -277,7 +285,7 @@ class App extends Component {
                 <MapWidget onLoaded={this.onMapLoaded} onModal={this.onMapModal}></MapWidget>
                 {mapStyle && (
                     <Fragment>
-                        <Dialog open={!component && !importFile}>
+                        <Dialog open={!mapModal && !component && !importFile}>
                             <DialogContent>
                                 <Fragment>
                                     <input type="file" id="import" style={{ display: "none" }} onChange={this.onImportToggle} />
@@ -290,12 +298,15 @@ class App extends Component {
                                 <Button className={classes.action} variant="contained" fullWidth onClick={this.onGenerate}>
                                     Generate
                                 </Button>
+                                <Button className={classes.action} fullWidth onClick={this.onCreate}>
+                                    Create
+                                </Button>
                             </DialogContent>
                         </Dialog>
                         {component && (
                             //using the map style as a key to give down-stream users a chance to re-add layers when it changes
                             <main key={mapStyle} className={classes.main} style={mapModal ? { display: "none" } : undefined}>
-                                <ComponentEditor component={component} onChange={this.onChange} onClose={this.onClose} menuItems={this.getMenuItems()} />
+                                <ComponentEditor component={component} configurationWizard={configurationWizard} onChange={this.onChange} onClose={this.onClose} menuItems={this.getMenuItems()} />
                             </main>
                         )}
                         {importFile && (
