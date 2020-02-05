@@ -112,9 +112,7 @@ class ComponentViewerBase extends Component {
                     }
                 })
 
-                if (firebase) {
-                    firebase.touchComponent(this.componentRef())
-                }
+                firebase.touchComponent(this.componentRef())
             }
         })
     }

@@ -217,11 +217,11 @@ class ComponentsBase extends Component {
     }
 
     results = () => {
-        const { components } = this.state
+        const { components, filter } = this.state
         if (components) {
             return components.filter(component => {
                 return Utils.matchStrings(
-                    this.state.filter,
+                    filter,
                     [Dronelink.Serialization.typeDisplay(component.data().type), component.data().name, component.data().description].concat(component.data().tags)
                 )
             })

@@ -97,6 +97,19 @@ class App extends Component {
     }
 
     onClose = () => {
+        const mission = Dronelink.Mission.createFromComponent(this.state.component)
+        const estimateSummary = mission.estimate(
+            true, //altitude required
+            true //time required
+        ).summary
+        console.log(
+            Dronelink.Common.joinNotEmpty([
+                `Time: ${Dronelink.Format.timeElapsed(estimateSummary.time).toString()}`,
+                `Distance: ${Dronelink.Format.distance(estimateSummary.distance).toString()}`,
+                `Max Speed: ${Dronelink.Format.velocityHorizontal(estimateSummary.horizontalVelocityMax).toString()}`,
+                `Max Altitude: ${Dronelink.Format.altitude(estimateSummary.altitude.max).toString()}`
+            ])
+        )
         this.setState({ component: null })
     }
 

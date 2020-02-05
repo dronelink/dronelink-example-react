@@ -8,10 +8,12 @@ import { compose } from "recompose"
 import { withStyles } from "@material-ui/core/styles"
 import { Fade, Paper, Typography, AppBar, Tabs, Tab, IconButton, Tooltip } from "@material-ui/core"
 import { Code as SubComponentIcon } from "@material-ui/icons"
-import { ClipboardTextPlayOutline as PlanIcon, FolderOpenOutline as RepositoryIcon, DiceMultipleOutline as GenerateIcon } from "mdi-material-ui"
+import { ClipboardTextPlayOutline as PlanIcon, FolderOpenOutline as RepositoryIcon, DiceMultipleOutline as GenerateIcon, FunctionVariant as FuncIcon } from "mdi-material-ui"
 import { Plans, SubComponents } from "./component/components"
+import { Funcs } from "./func/funcs"
 import { MissionUtils } from "react-dronelink"
 import { ComponentViewer } from "./component"
+import { FuncViewer } from "./func"
 import * as Dronelink from "dronelink-kernel"
 import { withFirebase } from "../components/firebase"
 
@@ -72,7 +74,8 @@ const styles = theme => ({
 class Repository extends Component {
     state = {
         tab: 0,
-        component: null
+        component: null,
+        func: null
     }
 
     onTabChange = (event, tab) => {
@@ -105,9 +108,22 @@ class Repository extends Component {
         }))
     }
 
+    onOpenFunc = func => {
+        this.setState({
+            func: func
+        })
+    }
+
+    onCloseFunc = () => {
+        this.setState(state => ({
+            tab: state.func ? 2 : 0,
+            func: null
+        }))
+    }
+
     render() {
         const { classes, firebase } = this.props
-        const { tab, component } = this.state
+        const { tab, component, func } = this.state
 
         if (component) {
             const componentID = typeof component.value === "string" ? component.value : null
@@ -122,6 +138,12 @@ class Repository extends Component {
                     onOpen={this.onOpenComponent}
                 />
             )
+        }
+
+        if (func) {
+            const funcID = typeof func === "string" ? func : null
+            const funcContent = typeof func === "object" ? func : null
+            return <FuncViewer key={funcID} funcID={funcID} funcContent={funcContent} onClose={this.onCloseFunc} onOpen={this.onOpenFunc} />
         }
 
         return (
@@ -145,11 +167,13 @@ class Repository extends Component {
                         <Tabs value={tab} onChange={this.onTabChange} indicatorColor="primary" textColor="primary" variant="fullWidth">
                             {<Tab icon={<PlanIcon />} className={classes.tab} />}
                             {<Tab icon={<SubComponentIcon />} className={classes.tab} />}
+                            {<Tab icon={<FuncIcon />} className={classes.tab} />}
                         </Tabs>
                     </AppBar>
                     <div className={classes.tabContent}>
                         {tab === 0 && <Plans onOpen={this.onOpenPlan} />}
                         {tab === 1 && <SubComponents onOpen={this.onOpenSubComponent} />}
+                        {tab === 2 && <Funcs onOpen={this.onOpenFunc} />}
                     </div>
                 </Paper>
             </Fade>

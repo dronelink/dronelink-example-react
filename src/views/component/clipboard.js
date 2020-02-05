@@ -117,11 +117,10 @@ class ComponentClipboard extends Component {
                                                                         {element.component.subtitle}
                                                                     </Typography>
                                                                 )}
-                                                                <div>
-                                                                    <Typography variant="caption" color="textSecondary">
-                                                                        <Moment fromNow date={new Date(element.created)} />
-                                                                    </Typography>
-                                                                </div>
+                                                                <br />
+                                                                <Typography variant="caption" color="textSecondary">
+                                                                    <Moment fromNow date={new Date(element.created)} />
+                                                                </Typography>
                                                             </Fragment>
                                                         }
                                                         primaryTypographyProps={{ noWrap: false }}

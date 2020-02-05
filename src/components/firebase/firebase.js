@@ -46,6 +46,12 @@ class Firebase {
         return collection.doc()
     }
 
+    incrementCounter = (targetRef, counterName) => {
+        targetRef.update({
+            [counterName]: FirebaseApp.firestore.FieldValue.increment(1)
+        })
+    }
+
     components = type => this.firestore.collection(`${this.root()}/${type === Dronelink.TypeName.PlanComponent ? "plans" : "subComponents"}`)
     component = (type, id) => this.doc(this.components(type), id)
     componentVersions = (type, id) => this.component(type, id).collection("versions")
@@ -53,12 +59,6 @@ class Firebase {
         this.componentVersions(type, id)
             .orderBy("created", "desc")
             .limit(1)
-
-    incrementCounter = (targetRef, counterName) => {
-        targetRef.update({
-            [counterName]: FirebaseApp.firestore.FieldValue.increment(1)
-        })
-    }
 
     incrementComponentIncludes = componentRef => {
         return this.incrementCounter(componentRef, "includes")
@@ -172,6 +172,121 @@ class Firebase {
 
     lockComponentVersion = componentVersionRef => {
         return componentVersionRef.update({ locked: FirebaseApp.firestore.FieldValue.serverTimestamp() })
+    }
+
+    funcs = () => this.firestore.collection(`${this.root()}/funcs`)
+    func = id => this.doc(this.funcs(), id)
+    funcVersions = id => this.func(id).collection("versions")
+    funcLatestVersion = id =>
+        this.funcVersions(id)
+            .orderBy("created", "desc")
+            .limit(1)
+
+    createFunc = (funcRef, func, copiedFuncRef) => {
+        const batch = this.firestore.batch()
+        batch.set(funcRef, {
+            coordinate: new FirebaseApp.firestore.GeoPoint(func.coordinate.latitude, func.coordinate.longitude),
+            name: func.descriptors.name,
+            description: func.descriptors.description,
+            tags: func.descriptors.tags,
+            created: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+            updated: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+            touched: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+            details: { lines: 0, inputs: 0 },
+            copies: 0,
+            copiedFunc: copiedFuncRef ? copiedFuncRef : null
+        })
+
+        const funcVersionRef = funcRef.collection("versions").doc()
+        batch.set(funcVersionRef, {
+            created: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+            updated: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+            delta: Dronelink.Common.uuid(),
+            locked: null
+        })
+
+        //KLUGE: handle mobile device large func creation (copying, etc)
+        //if we do this as part of the above set operation, it always seems to fail on mobile devices!!!
+        batch.update(funcVersionRef, {
+            content: Dronelink.Serialization.write(func)
+        })
+
+        if (copiedFuncRef) {
+            batch.update(copiedFuncRef, {
+                copies: FirebaseApp.firestore.FieldValue.increment(1)
+            })
+        }
+
+        return batch.commit()
+    }
+
+    touchFunc = funcRef => {
+        return funcRef.update({ touched: FirebaseApp.firestore.FieldValue.serverTimestamp() })
+    }
+
+    updateFunc = (funcRef, func, funcVersionRef, funcVersionDelta) => {
+        const batch = this.firestore.batch()
+        batch.update(funcRef, {
+            coordinate: new FirebaseApp.firestore.GeoPoint(func.coordinate.latitude, func.coordinate.longitude),
+            name: func.descriptors.name,
+            description: func.descriptors.description,
+            tags: func.descriptors.tags,
+            updated: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+            touched: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+            details: { lines: func.executable.split(/\r\n|\r|\n/).length, inputs: func.inputs.length }
+        })
+
+        const content = Dronelink.Serialization.write(func)
+        funcVersionDelta = funcVersionDelta ? funcVersionDelta : null
+        if (funcVersionRef) {
+            batch.update(funcVersionRef, {
+                updated: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+                content: content,
+                delta: funcVersionDelta,
+                locked: null
+            })
+        } else {
+            batch.set(funcRef.collection("versions").doc(), {
+                created: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+                updated: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+                content: content,
+                delta: funcVersionDelta,
+                locked: null
+            })
+        }
+
+        return batch.commit()
+    }
+
+    deleteFunc = funcRef => {
+        const batch = this.firestore.batch()
+        batch.delete(funcRef)
+        return funcRef
+            .collection("versions")
+            .get()
+            .then(versions => {
+                versions.forEach(version => {
+                    batch.delete(version.ref)
+                })
+
+                return batch.commit()
+            })
+    }
+
+    deleteFuncVersions = funcVersionRefs => {
+        const batch = this.firestore.batch()
+        funcVersionRefs.forEach(funcVersionRef => {
+            batch.delete(funcVersionRef)
+        })
+        return batch.commit()
+    }
+
+    deleteFuncVersion = funcVersionRef => {
+        return this.deleteFuncVersions([funcVersionRef])
+    }
+
+    lockFuncVersion = funcVersionRef => {
+        return funcVersionRef.update({ locked: FirebaseApp.firestore.FieldValue.serverTimestamp() })
     }
 }
 
