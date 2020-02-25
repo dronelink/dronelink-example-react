@@ -25,6 +25,12 @@ const styles = theme => ({
     versions: {
         minWidth: 300,
         maxWidth: 350
+    },
+    editor: {
+        "pointer-events": "none",
+        position: "absolute",
+        height: "100%",
+        width: "100vw"
     }
 })
 
@@ -380,20 +386,22 @@ class FuncViewerBase extends Component {
 
         return (
             <Fragment>
-                <FuncEditor
-                    func={func}
-                    subtitle={
-                        funcVersion && {
-                            tooltip: `Last Saved ${moment(autosaved || funcVersion.updated.toDate()).format("MMM D, YYYY [at] h:mm:ss a")}`,
-                            value: autosaved ? <Moment format="h:mm:ss a" date={autosaved} /> : <Moment format="MMM D, YYYY" date={funcVersion.updated.toDate()} />
+                <div className={classes.editor}>
+                    <FuncEditor
+                        func={func}
+                        subtitle={
+                            funcVersion && {
+                                tooltip: `Last Saved ${moment(autosaved || funcVersion.updated.toDate()).format("MMM D, YYYY [at] h:mm:ss a")}`,
+                                value: autosaved ? <Moment format="h:mm:ss a" date={autosaved} /> : <Moment format="MMM D, YYYY" date={funcVersion.updated.toDate()} />
+                            }
                         }
-                    }
-                    onAddComponent={firebase ? this.onAddComponentToggle : undefined}
-                    onChange={this.onChange}
-                    menuItems={this.getMenuItems()}
-                    sourceComponents={firebase ? { onOpen: this.onSourceComponentsToggle, updatesAvailableCount: sourceComponentsUpdatesAvailableCount } : undefined}
-                    onClose={this.onClose}
-                />
+                        onAddComponent={firebase ? this.onAddComponentToggle : undefined}
+                        onChange={this.onChange}
+                        menuItems={this.getMenuItems()}
+                        sourceComponents={firebase ? { onOpen: this.onSourceComponentsToggle, updatesAvailableCount: sourceComponentsUpdatesAvailableCount } : undefined}
+                        onClose={this.onClose}
+                    />
+                </div>
                 {firebase && (
                     <Fragment>
                         {addComponentAnchorEl && (

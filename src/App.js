@@ -43,6 +43,12 @@ const styles = theme => ({
         top: MissionUtils.UI.headerHeight,
         left: 0,
         bottom: 0
+    },
+    editor: {
+        "pointer-events": "none",
+        position: "absolute",
+        width: "100vw",
+        height: "100%"
     }
 })
 
@@ -91,6 +97,7 @@ class App extends Component {
     }
 
     onChange = replacementComponent => {
+        //replacementComponent will only be set on undo/redo
         this.setState(state => ({
             component: replacementComponent || state.component
         }))
@@ -107,7 +114,9 @@ class App extends Component {
                 `Time: ${Dronelink.Format.timeElapsed(estimateSummary.time).toString()}`,
                 `Distance: ${Dronelink.Format.distance(estimateSummary.distance).toString()}`,
                 `Max Speed: ${Dronelink.Format.velocityHorizontal(estimateSummary.horizontalVelocityMax).toString()}`,
-                `Max Altitude: ${Dronelink.Format.altitude(estimateSummary.altitude.max).toString()}`
+                `Max Altitude: ${Dronelink.Format.altitude(estimateSummary.altitude.max).toString()}`,
+                `Photos: ${Dronelink.Format.integer(estimateSummary.photos).toString()}`,
+                `Videos: ${Dronelink.Format.integer(estimateSummary.videos).toString()}`
             ])
         )
         this.setState({ component: null })
@@ -136,7 +145,11 @@ class App extends Component {
                             </DialogContent>
                         </Dialog>
                         {component === false && <Repository />}
-                        {component !== false && component !== null && <ComponentEditor component={component} configurationWizard onChange={this.onChange} onClose={this.onClose} />}
+                        {component !== false && component !== null && (
+                            <div className={classes.editor}>
+                                <ComponentEditor component={component} configurationWizard onChange={this.onChange} onClose={this.onClose} />
+                            </div>
+                        )}
                     </main>
                 )}
             </MuiThemeProvider>

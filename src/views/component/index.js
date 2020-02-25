@@ -21,6 +21,12 @@ import ComponentPinImage from "../../assets/img/component-pin.png"
 import moment from "moment"
 
 const styles = theme => ({
+    editor: {
+        "pointer-events": "none",
+        position: "absolute",
+        width: "100vw",
+        height: "100%"
+    },
     loading: {
         width: "100vw"
     },
@@ -470,10 +476,10 @@ class ComponentViewerBase extends Component {
         }
 
         return (
-            <Fragment>
+            <div className={classes.editor}>
                 <ComponentEditor
                     component={component}
-                    configurationWizard={ComponentUtils.subComponentCount(component) === 0}
+                    configurationWizard={ComponentUtils.details(component).subComponents === 0}
                     subtitle={
                         componentVersion && {
                             tooltip: `Last Saved ${moment(autosaved || componentVersion.updated.toDate()).format("MMM D, YYYY [at] h:mm:ss a")}`,
@@ -507,7 +513,7 @@ class ComponentViewerBase extends Component {
                         </Drawer>
                     </Fragment>
                 )}
-            </Fragment>
+            </div>
         )
     }
 }

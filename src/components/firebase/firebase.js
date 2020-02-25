@@ -10,7 +10,7 @@ import "firebase/storage"
 import "firebase/functions"
 import "firebase/performance"
 import * as Dronelink from "dronelink-kernel"
-import { ComponentUtils } from "react-dronelink"
+import { ComponentUtils, FuncUtils } from "react-dronelink"
 
 const config = {
     apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -75,7 +75,7 @@ class Firebase {
             created: FirebaseApp.firestore.FieldValue.serverTimestamp(),
             updated: FirebaseApp.firestore.FieldValue.serverTimestamp(),
             touched: FirebaseApp.firestore.FieldValue.serverTimestamp(),
-            details: { subComponents: ComponentUtils.subComponentCount(component) },
+            details: ComponentUtils.details(component),
             copies: 0,
             includes: 0,
             copiedComponent: copiedComponentRef ? copiedComponentRef : null
@@ -118,7 +118,7 @@ class Firebase {
             tags: component.descriptors.tags,
             updated: FirebaseApp.firestore.FieldValue.serverTimestamp(),
             touched: FirebaseApp.firestore.FieldValue.serverTimestamp(),
-            details: { subComponents: ComponentUtils.subComponentCount(component) }
+            details: ComponentUtils.details(component)
         })
 
         const content = Dronelink.Serialization.write(component)
@@ -192,7 +192,7 @@ class Firebase {
             created: FirebaseApp.firestore.FieldValue.serverTimestamp(),
             updated: FirebaseApp.firestore.FieldValue.serverTimestamp(),
             touched: FirebaseApp.firestore.FieldValue.serverTimestamp(),
-            details: { lines: 0, inputs: 0 },
+            details: FuncUtils.details(func),
             copies: 0,
             copiedFunc: copiedFuncRef ? copiedFuncRef : null
         })
@@ -233,7 +233,7 @@ class Firebase {
             tags: func.descriptors.tags,
             updated: FirebaseApp.firestore.FieldValue.serverTimestamp(),
             touched: FirebaseApp.firestore.FieldValue.serverTimestamp(),
-            details: { lines: func.executable.split(/\r\n|\r|\n/).length, inputs: func.inputs.length }
+            details: FuncUtils.details(func)
         })
 
         const content = Dronelink.Serialization.write(func)
