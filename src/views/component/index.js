@@ -90,8 +90,9 @@ class ComponentViewerBase extends Component {
                     const doc = snapshot.docs[0]
                     this.componentVersionRef = this.componentVersionsRef.doc(doc.id)
                     const componentVersion = { ...{ id: doc.id }, ...doc.data() }
-                    const component = Dronelink.Serialization.read(componentVersion.content)
-
+                    const component = Dronelink.Serialization.read(componentVersion.content, error => {
+                        console.log(error)
+                    })
                     if (component) {
                         if (this.componentVersionDelta && this.componentVersionDelta === componentVersion.delta) {
                             return
