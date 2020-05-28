@@ -28,7 +28,7 @@
         "react-detect-offline": "^2.4.0",
         "react-device-detect": "^1.11.14",
         "react-dom": "^16.12.0",
-        "react-dronelink": "^1.6.0",
+        "react-dronelink": "^1.6.1",
         "react-localization": "^1.0.15",
         "react-moment": "^0.9.7",
         "react-monaco-editor": "^0.33.0",
