@@ -23,7 +23,7 @@ import * as Dronelink from "dronelink-kernel"
 import { Offline } from "react-detect-offline"
 import { MissionUtils } from "react-dronelink"
 
-const styles = theme => ({
+const styles = (theme) => ({
     appBar: {
         [theme.breakpoints.up("sm")]: {
             background: "rgba(0, 0, 0, 0.75)"
@@ -89,15 +89,15 @@ class Navigation extends Component {
         this.setState({ menuOpen: menuOpen })
     }
 
-    onSettingsToggle = e => {
+    onSettingsToggle = (e) => {
         this.setState({ settingsAnchorEl: e ? e.currentTarget : null })
     }
 
-    onThemeChange = e => {
+    onThemeChange = (e) => {
         this.props.setTheme(e.target.value)
     }
 
-    onUnitSystemChange = e => {
+    onUnitSystemChange = (e) => {
         this.props.setUnitSystem(e.target.value)
     }
 
@@ -210,9 +210,14 @@ class Navigation extends Component {
                             <ListItemText primary="Settings" />
                         </ListItem>
                         <Divider />
-                        <ListItem>
-                            <ListItemText primary={process.env.REACT_APP_DISPLAY_NAME} secondary={`Version ${process.env.REACT_APP_VERSION}`} />
-                        </ListItem>
+                        <List dense>
+                            <ListItem>
+                                <ListItemText primary={process.env.REACT_APP_DISPLAY_NAME} secondary={`Version ${process.env.REACT_APP_VERSION}`} />
+                            </ListItem>
+                            <ListItem>
+                                <ListItemText primary="Kernel" secondary={`Version ${Dronelink.Constants.Version}`} />
+                            </ListItem>
+                        </List>
                     </List>
                 </Drawer>
                 {settingsAnchorEl && (
