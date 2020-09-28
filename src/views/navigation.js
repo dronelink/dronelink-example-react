@@ -16,7 +16,7 @@ import {
     Twitter as TwitterIcon,
     ForumOutline as ForumsIcon,
     School as TutorialsIcon,
-    GithubCircle as DevelopersIcon
+    Github as DevelopersIcon
 } from "mdi-material-ui"
 import { HelpOutlineOutlined as SupportIcon, Menu as MenuIcon, Settings as SettingsIcon } from "@material-ui/icons"
 import * as Dronelink from "dronelink-kernel"
