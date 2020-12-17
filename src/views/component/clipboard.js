@@ -27,12 +27,12 @@ import {
     CardHeader
 } from "@material-ui/core"
 import * as Dronelink from "dronelink-kernel"
-import { ComponentUtils, MissionUtils } from "react-dronelink"
+import { ComponentUtils, Utils } from "react-dronelink"
 
 const styles = theme => ({
     button: {
         position: "fixed",
-        top: MissionUtils.UI.headerHeight + theme.spacing(2),
+        top: Utils.UI.headerHeight + theme.spacing(2),
         right: theme.spacing(1)
     },
     menu: {
@@ -59,12 +59,12 @@ class ComponentClipboard extends Component {
     }
 
     onDelete = index => {
-        MissionUtils.clipboard.splice(index, 1)
+        Utils.clipboard.splice(index, 1)
         this.setState({ anchorEl: null })
     }
 
     onDeleteAll = () => {
-        MissionUtils.clipboard = []
+        Utils.clipboard = []
         this.setState({ anchorEl: null })
     }
 
@@ -73,14 +73,14 @@ class ComponentClipboard extends Component {
         const { anchorEl } = this.state
         const open = Boolean(anchorEl)
 
-        if (MissionUtils.clipboard.length === 0) {
+        if (Utils.clipboard.length === 0) {
             return null
         }
 
         return (
             <Fragment>
                 <IconButton className={classes.button} aria-owns={open ? "clipboard-menu" : undefined} aria-haspopup="true" aria-label="Clipboard" onClick={this.onOpen}>
-                    <Badge badgeContent={MissionUtils.clipboard.length} color="secondary">
+                    <Badge badgeContent={Utils.clipboard.length} color="secondary">
                         <ClipboardIcon className={classes.icon} />
                     </Badge>
                 </IconButton>
@@ -101,7 +101,7 @@ class ComponentClipboard extends Component {
                             />
                             <CardContent className={classes.menu}>
                                 <List dense>
-                                    {MissionUtils.clipboard.map((element, index) => {
+                                    {Utils.clipboard.map((element, index) => {
                                         if (element.component instanceof Dronelink.Component) {
                                             return (
                                                 <ListItem key={index} dense alignItems="flex-start">
@@ -144,7 +144,7 @@ class ComponentClipboard extends Component {
                                     })}
                                 </List>
                             </CardContent>
-                            {MissionUtils.clipboard.length > 1 && (
+                            {Utils.clipboard.length > 1 && (
                                 <Fragment>
                                     <Divider />
                                     <CardActions disableSpacing>

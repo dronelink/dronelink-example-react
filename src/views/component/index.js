@@ -7,7 +7,7 @@ import React, { Component, Fragment } from "react"
 import { compose } from "recompose"
 import { withStyles } from "@material-ui/core/styles"
 import * as Dronelink from "dronelink-kernel"
-import { MapUtils, ComponentEditor, ComponentUtils, MissionUtils } from "react-dronelink"
+import { MapUtils, ComponentEditor, ComponentUtils, Utils } from "react-dronelink"
 import ComponentVersions from "./versions"
 import ComponentSourceComponents from "./sourcecomponents"
 import ComponentSelect from "./select"
@@ -279,7 +279,7 @@ class ComponentViewerBase extends Component {
     }
 
     onSubComponentCopyToClipboard = (e, component) => {
-        MissionUtils.clipboard.push({
+        Utils.clipboard.push({
             created: new Date(),
             component: Dronelink.Serialization.clone(component, true)
         })

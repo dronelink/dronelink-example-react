@@ -10,7 +10,7 @@ import "firebase/storage"
 import "firebase/functions"
 import "firebase/performance"
 import * as Dronelink from "dronelink-kernel"
-import { ComponentUtils, FuncUtils } from "react-dronelink"
+import { ComponentUtils, FuncUtils, ModeUtils } from "react-dronelink"
 
 const config = {
     apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -52,15 +52,12 @@ class Firebase {
         })
     }
 
-    components = type => this.firestore.collection(`${this.root()}/${type === Dronelink.TypeName.PlanComponent ? "plans" : "subComponents"}`)
+    components = (type) => this.firestore.collection(`${this.root()}/${type === Dronelink.TypeName.PlanComponent ? "plans" : "subComponents"}`)
     component = (type, id) => this.doc(this.components(type), id)
     componentVersions = (type, id) => this.component(type, id).collection("versions")
-    componentLatestVersion = (type, id) =>
-        this.componentVersions(type, id)
-            .orderBy("created", "desc")
-            .limit(1)
+    componentLatestVersion = (type, id) => this.componentVersions(type, id).orderBy("created", "desc").limit(1)
 
-    incrementComponentIncludes = componentRef => {
+    incrementComponentIncludes = (componentRef) => {
         return this.incrementCounter(componentRef, "includes")
     }
 
@@ -104,7 +101,7 @@ class Firebase {
         return batch.commit()
     }
 
-    touchComponent = componentRef => {
+    touchComponent = (componentRef) => {
         return componentRef.update({ touched: FirebaseApp.firestore.FieldValue.serverTimestamp() })
     }
 
@@ -149,8 +146,8 @@ class Firebase {
         return componentRef
             .collection("versions")
             .get()
-            .then(versions => {
-                versions.forEach(version => {
+            .then((versions) => {
+                versions.forEach((version) => {
                     batch.delete(version.ref)
                 })
 
@@ -158,29 +155,26 @@ class Firebase {
             })
     }
 
-    deleteComponentVersions = componentVersionRefs => {
+    deleteComponentVersions = (componentVersionRefs) => {
         const batch = this.firestore.batch()
-        componentVersionRefs.forEach(componentVersionRef => {
+        componentVersionRefs.forEach((componentVersionRef) => {
             batch.delete(componentVersionRef)
         })
         return batch.commit()
     }
 
-    deleteComponentVersion = componentVersionRef => {
+    deleteComponentVersion = (componentVersionRef) => {
         return this.deleteComponentVersions([componentVersionRef])
     }
 
-    lockComponentVersion = componentVersionRef => {
+    lockComponentVersion = (componentVersionRef) => {
         return componentVersionRef.update({ locked: FirebaseApp.firestore.FieldValue.serverTimestamp() })
     }
 
     funcs = () => this.firestore.collection(`${this.root()}/funcs`)
-    func = id => this.doc(this.funcs(), id)
-    funcVersions = id => this.func(id).collection("versions")
-    funcLatestVersion = id =>
-        this.funcVersions(id)
-            .orderBy("created", "desc")
-            .limit(1)
+    func = (id) => this.doc(this.funcs(), id)
+    funcVersions = (id) => this.func(id).collection("versions")
+    funcLatestVersion = (id) => this.funcVersions(id).orderBy("created", "desc").limit(1)
 
     createFunc = (funcRef, func, copiedFuncRef) => {
         const batch = this.firestore.batch()
@@ -220,7 +214,7 @@ class Firebase {
         return batch.commit()
     }
 
-    touchFunc = funcRef => {
+    touchFunc = (funcRef) => {
         return funcRef.update({ touched: FirebaseApp.firestore.FieldValue.serverTimestamp() })
     }
 
@@ -258,14 +252,14 @@ class Firebase {
         return batch.commit()
     }
 
-    deleteFunc = funcRef => {
+    deleteFunc = (funcRef) => {
         const batch = this.firestore.batch()
         batch.delete(funcRef)
         return funcRef
             .collection("versions")
             .get()
-            .then(versions => {
-                versions.forEach(version => {
+            .then((versions) => {
+                versions.forEach((version) => {
                     batch.delete(version.ref)
                 })
 
@@ -273,20 +267,132 @@ class Firebase {
             })
     }
 
-    deleteFuncVersions = funcVersionRefs => {
+    deleteFuncVersions = (funcVersionRefs) => {
         const batch = this.firestore.batch()
-        funcVersionRefs.forEach(funcVersionRef => {
+        funcVersionRefs.forEach((funcVersionRef) => {
             batch.delete(funcVersionRef)
         })
         return batch.commit()
     }
 
-    deleteFuncVersion = funcVersionRef => {
+    deleteFuncVersion = (funcVersionRef) => {
         return this.deleteFuncVersions([funcVersionRef])
     }
 
-    lockFuncVersion = funcVersionRef => {
+    lockFuncVersion = (funcVersionRef) => {
         return funcVersionRef.update({ locked: FirebaseApp.firestore.FieldValue.serverTimestamp() })
+    }
+
+    modes = () => this.firestore.collection(`${this.root()}/modes`)
+    mode = (id) => this.doc(this.modes(), id)
+    modeVersions = (id) => this.mode(id).collection("versions")
+    modeLatestVersion = (id) => this.modeVersions(id).orderBy("created", "desc").limit(1)
+
+    createMode = (modeRef, mode, copiedModeRef) => {
+        const batch = this.firestore.batch()
+        batch.set(modeRef, {
+            coordinate: new FirebaseApp.firestore.GeoPoint(mode.coordinate.latitude, mode.coordinate.longitude),
+            name: mode.descriptors.name,
+            description: mode.descriptors.description,
+            tags: mode.descriptors.tags,
+            created: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+            updated: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+            touched: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+            details: ModeUtils.details(mode),
+            copies: 0,
+            copiedMode: copiedModeRef ? copiedModeRef : null
+        })
+
+        const modeVersionRef = modeRef.collection("versions").doc()
+        batch.set(modeVersionRef, {
+            created: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+            updated: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+            delta: Dronelink.Common.uuid(),
+            locked: null
+        })
+
+        //KLUGE: handle mobile device large mode creation (copying, etc)
+        //if we do this as part of the above set operation, it always seems to fail on mobile devices!!!
+        batch.update(modeVersionRef, {
+            content: Dronelink.Serialization.write(mode)
+        })
+
+        if (copiedModeRef) {
+            batch.update(copiedModeRef, {
+                copies: FirebaseApp.firestore.FieldValue.increment(1)
+            })
+        }
+
+        return batch.commit()
+    }
+
+    touchMode = (modeRef) => {
+        return modeRef.update({ touched: FirebaseApp.firestore.FieldValue.serverTimestamp() })
+    }
+
+    updateMode = (modeRef, mode, modeVersionRef, modeVersionDelta) => {
+        const batch = this.firestore.batch()
+        batch.update(modeRef, {
+            coordinate: new FirebaseApp.firestore.GeoPoint(mode.coordinate.latitude, mode.coordinate.longitude),
+            name: mode.descriptors.name,
+            description: mode.descriptors.description,
+            tags: mode.descriptors.tags,
+            updated: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+            touched: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+            details: ModeUtils.details(mode)
+        })
+
+        const content = Dronelink.Serialization.write(mode)
+        modeVersionDelta = modeVersionDelta ? modeVersionDelta : null
+        if (modeVersionRef) {
+            batch.update(modeVersionRef, {
+                updated: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+                content: content,
+                delta: modeVersionDelta,
+                locked: null
+            })
+        } else {
+            batch.set(modeRef.collection("versions").doc(), {
+                created: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+                updated: FirebaseApp.firestore.FieldValue.serverTimestamp(),
+                content: content,
+                delta: modeVersionDelta,
+                locked: null
+            })
+        }
+
+        return batch.commit()
+    }
+
+    deleteMode = (modeRef) => {
+        const batch = this.firestore.batch()
+        batch.delete(modeRef)
+        return modeRef
+            .collection("versions")
+            .get()
+            .then((versions) => {
+                versions.forEach((version) => {
+                    batch.delete(version.ref)
+                })
+
+                return batch.commit()
+            })
+    }
+
+    deleteModeVersions = (modeVersionRefs) => {
+        const batch = this.firestore.batch()
+        modeVersionRefs.forEach((modeVersionRef) => {
+            batch.delete(modeVersionRef)
+        })
+        return batch.commit()
+    }
+
+    deleteModeVersion = (modeVersionRef) => {
+        return this.deleteModeVersions([modeVersionRef])
+    }
+
+    lockModeVersion = (modeVersionRef) => {
+        return modeVersionRef.update({ locked: FirebaseApp.firestore.FieldValue.serverTimestamp() })
     }
 }
 

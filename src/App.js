@@ -6,7 +6,7 @@
 import React, { Component } from "react"
 import * as Dronelink from "dronelink-kernel"
 import "typeface-roboto"
-import { MapWidget, NotificationWidget, ComponentUtils, MissionUtils, ComponentEditor } from "react-dronelink"
+import { MapWidget, NotificationWidget, ComponentUtils, Utils, ComponentEditor } from "react-dronelink"
 import { MuiThemeProvider, createMuiTheme, withStyles } from "@material-ui/core/styles"
 import { emphasize } from "@material-ui/core/styles/colorManipulator"
 import { deepPurple as ColorPrimary, pink as ColorSecondary } from "@material-ui/core/colors"
@@ -15,7 +15,7 @@ import Navigation from "./views/navigation"
 import Repository from "./views/repository"
 import { Dialog, DialogTitle, DialogContent, Button } from "@material-ui/core"
 
-MissionUtils.UI.headerHeight = 64
+Utils.UI.headerHeight = 64
 
 const themes = {
     light: createMuiTheme({
@@ -40,7 +40,7 @@ const themes = {
 const styles = theme => ({
     main: {
         position: "fixed",
-        top: MissionUtils.UI.headerHeight,
+        top: Utils.UI.headerHeight,
         left: 0,
         bottom: 0
     },

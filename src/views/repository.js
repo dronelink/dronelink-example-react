@@ -8,32 +8,40 @@ import { compose } from "recompose"
 import { withStyles } from "@material-ui/core/styles"
 import { Fade, Paper, Typography, AppBar, Tabs, Tab, IconButton, Tooltip } from "@material-ui/core"
 import { Code as SubComponentIcon } from "@material-ui/icons"
-import { ClipboardTextPlayOutline as PlanIcon, FolderOpenOutline as RepositoryIcon, DiceMultipleOutline as GenerateIcon, FunctionVariant as FuncIcon } from "mdi-material-ui"
+import {
+    ClipboardTextPlayOutline as PlanIcon,
+    FolderOpenOutline as RepositoryIcon,
+    DiceMultipleOutline as GenerateIcon,
+    FunctionVariant as FuncIcon,
+    AnimationPlayOutline as ModeIcon
+} from "mdi-material-ui"
 import { Plans, SubComponents } from "./component/components"
 import { Funcs } from "./func/funcs"
-import { MissionUtils } from "react-dronelink"
+import { Modes } from "./mode/modes"
+import { Utils } from "react-dronelink"
 import { ComponentViewer } from "./component"
 import { FuncViewer } from "./func"
+import { ModeViewer } from "./mode"
 import * as Dronelink from "dronelink-kernel"
 import { withFirebase } from "../components/firebase"
 
-const styles = theme => ({
+const styles = (theme) => ({
     container: {
         display: "flex",
         flexDirection: "column",
         position: "fixed",
-        top: MissionUtils.UI.headerHeight,
+        top: Utils.UI.headerHeight,
         left: 0,
         bottom: 0,
         [theme.breakpoints.up("sm")]: {
             width: 375,
-            top: MissionUtils.UI.headerHeight + theme.spacing(2),
+            top: Utils.UI.headerHeight + theme.spacing(2),
             left: theme.spacing(2),
             bottom: theme.spacing(2)
         },
         [theme.breakpoints.down("xs")]: {
             right: 0,
-            top: MissionUtils.UI.headerHeight,
+            top: Utils.UI.headerHeight,
             left: 0,
             bottom: 0
         },
@@ -75,7 +83,8 @@ class Repository extends Component {
     state = {
         tab: 0,
         component: null,
-        func: null
+        func: null,
+        mode: null
     }
 
     onTabChange = (event, tab) => {
@@ -93,37 +102,50 @@ class Repository extends Component {
         })
     }
 
-    onOpenPlan = plan => {
+    onOpenPlan = (plan) => {
         this.onOpenComponent(plan, Dronelink.TypeName.PlanComponent)
     }
 
-    onOpenSubComponent = subComponent => {
+    onOpenSubComponent = (subComponent) => {
         this.onOpenComponent(subComponent, Dronelink.TypeName.SubComponent)
     }
 
     onCloseComponent = () => {
-        this.setState(state => ({
+        this.setState((state) => ({
             tab: state.component && state.component.type === Dronelink.TypeName.SubComponent ? 1 : 0,
             component: null
         }))
     }
 
-    onOpenFunc = func => {
+    onOpenFunc = (func) => {
         this.setState({
             func: func
         })
     }
 
     onCloseFunc = () => {
-        this.setState(state => ({
+        this.setState((state) => ({
             tab: state.func ? 2 : 0,
             func: null
         }))
     }
 
+    onOpenMode = (mode) => {
+        this.setState({
+            mode: mode
+        })
+    }
+
+    onCloseMode = () => {
+        this.setState((state) => ({
+            tab: state.mode ? 3 : 0,
+            mode: null
+        }))
+    }
+
     render() {
         const { classes, firebase } = this.props
-        const { tab, component, func } = this.state
+        const { tab, component, func, mode } = this.state
 
         if (component) {
             const componentID = typeof component.value === "string" ? component.value : null
@@ -144,6 +166,12 @@ class Repository extends Component {
             const funcID = typeof func === "string" ? func : null
             const funcContent = typeof func === "object" ? func : null
             return <FuncViewer key={funcID} funcID={funcID} funcContent={funcContent} onClose={this.onCloseFunc} onOpen={this.onOpenFunc} />
+        }
+
+        if (mode) {
+            const modeID = typeof mode === "string" ? mode : null
+            const modeContent = typeof mode === "object" ? mode : null
+            return <ModeViewer key={modeID} modeID={modeID} modeContent={modeContent} onClose={this.onCloseMode} onOpen={this.onOpenMode} />
         }
 
         return (
@@ -168,12 +196,14 @@ class Repository extends Component {
                             {<Tab icon={<PlanIcon />} className={classes.tab} />}
                             {<Tab icon={<SubComponentIcon />} className={classes.tab} />}
                             {<Tab icon={<FuncIcon />} className={classes.tab} />}
+                            {<Tab icon={<ModeIcon />} className={classes.tab} />}
                         </Tabs>
                     </AppBar>
                     <div className={classes.tabContent}>
                         {tab === 0 && <Plans onOpen={this.onOpenPlan} />}
                         {tab === 1 && <SubComponents onOpen={this.onOpenSubComponent} />}
                         {tab === 2 && <Funcs onOpen={this.onOpenFunc} />}
+                        {tab === 3 && <Modes onOpen={this.onOpenMode} />}
                     </div>
                 </Paper>
             </Fade>
@@ -183,7 +213,7 @@ class Repository extends Component {
     onGenerate = () => {
         //the plan is the root of every component heirarchy
         const plan = new Dronelink.PlanComponent()
-        const context = new Dronelink.Context(plan)
+        const context = new Dronelink.ComponentContext(plan)
         plan.descriptors = new Dronelink.Descriptors("Name", "Description", ["tag1", "tag2"])
         //the reference coordinate of the plan (all other positions/vectors are relative to this)
         plan.coordinate = window.mapWidget.getCenterMissionGeoCoordinate()
@@ -378,7 +408,7 @@ class Repository extends Component {
                     window.mapWidget.map.flyTo({ center: plan.coordinate.toLngLat(), zoom: Math.max(window.mapWidget.map.getZoom(), 17) })
                     this.onOpenComponent(docRef.id, plan.type)
                 })
-                .catch(e => {
+                .catch((e) => {
                     window.notificationWidget.showSnackbar(e.message)
                 })
             return

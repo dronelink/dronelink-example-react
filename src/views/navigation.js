@@ -21,7 +21,7 @@ import {
 import { HelpOutlineOutlined as SupportIcon, Menu as MenuIcon, Settings as SettingsIcon } from "@material-ui/icons"
 import * as Dronelink from "dronelink-kernel"
 import { Offline } from "react-detect-offline"
-import { MissionUtils } from "react-dronelink"
+import { Utils } from "react-dronelink"
 
 const styles = (theme) => ({
     appBar: {
@@ -31,7 +31,7 @@ const styles = (theme) => ({
         [theme.breakpoints.down("xs")]: {
             background: "#000"
         },
-        height: MissionUtils.UI.headerHeight
+        height: Utils.UI.headerHeight
     },
     logoAppBarImage: {
         height: 30,
