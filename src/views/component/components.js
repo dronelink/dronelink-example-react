@@ -21,7 +21,7 @@ import { withFirebase } from "../../components/firebase"
 import Firebase from "../../components/firebase/firebase"
 import Utils from "../../components/utils"
 
-const styles = theme => ({
+const styles = (theme) => ({
     container: {
         width: "100%",
         display: "flex",
@@ -114,7 +114,7 @@ class ComponentsBase extends Component {
             return
         }
 
-        this.unsubscribeComponents = firebase.components(componentType).onSnapshot(snapshot => {
+        this.unsubscribeComponents = firebase.components(componentType).onSnapshot((snapshot) => {
             if (snapshot.metadata.hasPendingWrites) {
                 return
             }
@@ -123,7 +123,7 @@ class ComponentsBase extends Component {
 
             this.markers.refresh(
                 components.length,
-                index => {
+                (index) => {
                     const component = components[index]
                     const marker = MapUtils.elementMarkerPin(
                         this.props.markerClassName,
@@ -133,7 +133,7 @@ class ComponentsBase extends Component {
                             window.mapWidget.onHoverMarker()
                             this.props.onOpen(component.id, componentType)
                         },
-                        e => {
+                        (e) => {
                             window.mapWidget.onHoverMarker(e, () => {
                                 return component.data().name
                             })
@@ -152,15 +152,14 @@ class ComponentsBase extends Component {
                 components: components
             })
 
-            const plans = components.filter(component => {
+            const plans = components.filter((component) => {
                 return component.data().type === Dronelink.TypeName.PlanComponent
             })
             if (plans.length > 0) {
-                const bounds = new mapboxgl.LngLatBounds()
-                plans.forEach(plan => {
-                    bounds.extend([plan.data().coordinate.longitude, plan.data().coordinate.latitude])
-                })
-                window.mapWidget.map.fitBounds(bounds, { padding: { top: 125, left: 425, right: 50, bottom: 50 }, maxZoom: 16, animate: false })
+                const bounds = MapUtils.bounds(plans.map((plan) => [plan.data().coordinate.longitude, plan.data().coordinate.latitude]))
+                if (bounds) {
+                    window.mapWidget.map.fitBounds(bounds, { padding: { top: 125, left: 425, right: 50, bottom: 50 }, maxZoom: 16, animate: false })
+                }
             }
         })
     }
@@ -172,7 +171,7 @@ class ComponentsBase extends Component {
         this.markers.removeAll()
     }
 
-    onCreateComplete = component => {
+    onCreateComplete = (component) => {
         this.setState({ creating: true })
         const { firebase, onOpen } = this.props
         if (!firebase) {
@@ -187,13 +186,13 @@ class ComponentsBase extends Component {
                 window.mapWidget.map.flyTo({ center: component.coordinate.toLngLat(), zoom: Math.max(window.mapWidget.map.getZoom(), 17) })
                 onOpen(docRef.id, component.type)
             })
-            .catch(e => {
+            .catch((e) => {
                 this.setState({ creating: false })
                 window.notificationWidget.showSnackbar(e.message)
             })
     }
 
-    onImportToggle = e => {
+    onImportToggle = (e) => {
         this.setState({ importFile: e ? e.target.files[0] : null })
         if (e) {
             //clear out the value in case they want to cancel (so onChange will fire again)
@@ -201,29 +200,26 @@ class ComponentsBase extends Component {
         }
     }
 
-    onImport = component => {
+    onImport = (component) => {
         this.onImportToggle()
         this.onCreateComplete(Dronelink.Serialization.clone(component, true), true)
     }
 
     onLimitIncrease = () => {
-        this.setState(state => ({
+        this.setState((state) => ({
             limit: state.limit + 100
         }))
     }
 
-    onFilter = e => {
+    onFilter = (e) => {
         this.setState({ [e.target.name]: e.target.value })
     }
 
     results = () => {
         const { components, filter } = this.state
         if (components) {
-            return components.filter(component => {
-                return Utils.matchStrings(
-                    filter,
-                    [Dronelink.Serialization.typeDisplay(component.data().type), component.data().name, component.data().description].concat(component.data().tags)
-                )
+            return components.filter((component) => {
+                return Utils.matchStrings(filter, [Dronelink.Serialization.typeDisplay(component.data().type), component.data().name, component.data().description].concat(component.data().tags))
             })
         }
         return null
@@ -260,7 +256,7 @@ class ComponentsBase extends Component {
                     <Fragment>
                         <Card className={classes.component}>
                             <CardActionArea
-                                onClick={e => {
+                                onClick={(e) => {
                                     onCreate(e, this.onCreateComplete)
                                 }}
                             >
@@ -297,7 +293,7 @@ class ComponentsBase extends Component {
                         .filter((value, index) => {
                             return index < limit
                         })
-                        .map(component => {
+                        .map((component) => {
                             return (
                                 <Card key={component.id} className={classes.component}>
                                     <CardActionArea
@@ -412,7 +408,7 @@ class SubComponentsBase extends Component {
         this.setState({ selecting: { anchorEl: e.currentTarget, complete: complete } })
     }
 
-    onSelectComponent = component => {
+    onSelectComponent = (component) => {
         if (!component) {
             this.setState({ selecting: null })
             return
@@ -441,7 +437,7 @@ class SubComponentsBase extends Component {
                     >
                         <ComponentAddWizard
                             title={`New ${Dronelink.Strings.Component.name}`}
-                            componentAllowed={component => {
+                            componentAllowed={(component) => {
                                 return !(component instanceof Dronelink.CommandComponent)
                             }}
                             onSelect={this.onSelectComponent}

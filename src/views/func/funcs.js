@@ -20,7 +20,7 @@ import { withFirebase } from "../../components/firebase"
 import Firebase from "../../components/firebase/firebase"
 import Utils from "../../components/utils"
 
-const styles = theme => ({
+const styles = (theme) => ({
     container: {
         width: "100%",
         display: "flex",
@@ -112,7 +112,7 @@ class FuncsBase extends Component {
             return
         }
 
-        this.unsubscribeFuncs = firebase.funcs().onSnapshot(snapshot => {
+        this.unsubscribeFuncs = firebase.funcs().onSnapshot((snapshot) => {
             if (snapshot.metadata.hasPendingWrites) {
                 return
             }
@@ -121,7 +121,7 @@ class FuncsBase extends Component {
 
             this.markers.refresh(
                 funcs.length,
-                index => {
+                (index) => {
                     const func = funcs[index]
                     const marker = MapUtils.elementMarkerPin(
                         classes.funcMarker,
@@ -131,7 +131,7 @@ class FuncsBase extends Component {
                             window.mapWidget.onHoverMarker()
                             this.props.onOpen(func.id)
                         },
-                        e => {
+                        (e) => {
                             window.mapWidget.onHoverMarker(e, () => {
                                 return func.data().name
                             })
@@ -151,11 +151,10 @@ class FuncsBase extends Component {
             })
 
             if (funcs.length > 0) {
-                const bounds = new mapboxgl.LngLatBounds()
-                funcs.forEach(func => {
-                    bounds.extend([func.data().coordinate.longitude, func.data().coordinate.latitude])
-                })
-                window.mapWidget.map.fitBounds(bounds, { padding: { top: 125, left: 425, right: 50, bottom: 50 }, maxZoom: 16, animate: false })
+                const bounds = MapUtils.bounds(funcs.map((func) => [func.data().coordinate.longitude, func.data().coordinate.latitude]))
+                if (bounds) {
+                    window.mapWidget.map.fitBounds(bounds, { padding: { top: 125, left: 425, right: 50, bottom: 50 }, maxZoom: 16, animate: false })
+                }
             }
         })
     }
@@ -167,7 +166,7 @@ class FuncsBase extends Component {
         this.markers.removeAll()
     }
 
-    onCreateComplete = func => {
+    onCreateComplete = (func) => {
         this.setState({ creating: true })
         const { firebase, onOpen } = this.props
         if (!firebase) {
@@ -182,20 +181,20 @@ class FuncsBase extends Component {
                 window.mapWidget.map.flyTo({ center: func.coordinate.toLngLat(), zoom: Math.max(window.mapWidget.map.getZoom(), 17) })
                 onOpen(docRef.id)
             })
-            .catch(e => {
+            .catch((e) => {
                 this.setState({ creating: false })
                 window.notificationWidget.showSnackbar(e.message)
             })
     }
 
-    onCreate = e => {
+    onCreate = (e) => {
         FuncUtils.createFunc(this.onCreateComplete)
     }
 
-    onImport = e => {
+    onImport = (e) => {
         if (e) {
             const reader = new FileReader()
-            reader.onloadend = e => {
+            reader.onloadend = (e) => {
                 this.onCreateComplete(Dronelink.Serialization.clone(Dronelink.Serialization.read(reader.result), true))
             }
             reader.readAsText(e.target.files[0])
@@ -205,19 +204,19 @@ class FuncsBase extends Component {
     }
 
     onLimitIncrease = () => {
-        this.setState(state => ({
+        this.setState((state) => ({
             limit: state.limit + 100
         }))
     }
 
-    onFilter = e => {
+    onFilter = (e) => {
         this.setState({ [e.target.name]: e.target.value })
     }
 
     results = () => {
         const { funcs, filter } = this.state
         if (funcs) {
-            return funcs.filter(func => {
+            return funcs.filter((func) => {
                 return Utils.matchStrings(filter, [func.data().name, func.data().description].concat(func.data().tags))
             })
         }
@@ -284,7 +283,7 @@ class FuncsBase extends Component {
                         .filter((value, index) => {
                             return index < limit
                         })
-                        .map(func => {
+                        .map((func) => {
                             return (
                                 <Card key={func.id} className={classes.func}>
                                     <CardActionArea

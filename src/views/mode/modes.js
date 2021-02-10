@@ -151,11 +151,10 @@ class ModesBase extends Component {
             })
 
             if (modes.length > 0) {
-                const bounds = new mapboxgl.LngLatBounds()
-                modes.forEach((mode) => {
-                    bounds.extend([mode.data().coordinate.longitude, mode.data().coordinate.latitude])
-                })
-                window.mapWidget.map.fitBounds(bounds, { padding: { top: 125, left: 425, right: 50, bottom: 50 }, maxZoom: 16, animate: false })
+                const bounds = MapUtils.bounds(modes.map((mode) => [mode.data().coordinate.longitude, mode.data().coordinate.latitude]))
+                if (bounds) {
+                    window.mapWidget.map.fitBounds(bounds, { padding: { top: 125, left: 425, right: 50, bottom: 50 }, maxZoom: 16, animate: false })
+                }
             }
         })
     }
