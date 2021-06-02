@@ -18,7 +18,7 @@ import { withFirebase } from "../../components/firebase"
 import ComponentSelect from "../component/select"
 import moment from "moment"
 
-const styles = theme => ({
+const styles = (theme) => ({
     loading: {
         width: "100vw"
     },
@@ -61,7 +61,7 @@ class FuncViewerBase extends Component {
             return
         }
 
-        this.unsubscribeFunc = this.funcRef().onSnapshot(snapshot => {
+        this.unsubscribeFunc = this.funcRef().onSnapshot((snapshot) => {
             if (this.unmounted) {
                 return
             }
@@ -75,7 +75,7 @@ class FuncViewerBase extends Component {
 
             if (!this.unsubscribeFuncVersion) {
                 this.funcVersionsRef = firebase.funcVersions(snapshot.id)
-                this.unsubscribeFuncVersion = firebase.funcLatestVersion(snapshot.id).onSnapshot(snapshot => {
+                this.unsubscribeFuncVersion = firebase.funcLatestVersion(snapshot.id).onSnapshot((snapshot) => {
                     if (this.unmounted || snapshot.metadata.hasPendingWrites) {
                         return
                     }
@@ -139,7 +139,7 @@ class FuncViewerBase extends Component {
         return firebase.func(funcID)
     }
 
-    onChange = replacementFunc => {
+    onChange = (replacementFunc) => {
         const { firebase } = this.props
         if (!firebase) {
             return
@@ -148,7 +148,7 @@ class FuncViewerBase extends Component {
         let { func, funcVersion } = this.state
         func = replacementFunc || func
 
-        const finish = newVersion => {
+        const finish = (newVersion) => {
             if (!newVersion) {
                 funcVersion.locked = null
             }
@@ -215,7 +215,7 @@ class FuncViewerBase extends Component {
                 window.notificationWidget.showSnackbar(`Copied ${copiedFunc.descriptors.name}`)
                 onOpen(docRef.id)
             })
-            .catch(e => {
+            .catch((e) => {
                 window.notificationWidget.showSnackbar(e.message)
             })
     }
@@ -236,12 +236,12 @@ class FuncViewerBase extends Component {
     }
 
     onVersionsToggle = () => {
-        this.setState(state => ({
+        this.setState((state) => ({
             versions: !state.versions
         }))
     }
 
-    onAcceptSourceComponents = func => {
+    onAcceptSourceComponents = (func) => {
         this.funcVersionDelta = null
         return this.props.firebase.updateFunc(this.funcRef(), func).then(() => {
             window.notificationWidget.showSnackbar({
@@ -250,7 +250,7 @@ class FuncViewerBase extends Component {
         })
     }
 
-    onSourceComponentsUpdatesAvailable = count => {
+    onSourceComponentsUpdatesAvailable = (count) => {
         if (!this.state.sourceComponents && count > 0) {
             window.notificationWidget.showSnackbar({
                 message: count === 1 ? "Updates available for 1 included component." : `Updates available for ${Dronelink.Format.integer(count)} included components.`,
@@ -267,15 +267,15 @@ class FuncViewerBase extends Component {
     }
 
     onSourceComponentsToggle = () => {
-        this.setState(state => ({
+        this.setState((state) => ({
             sourceComponents: !state.sourceComponents
         }))
     }
 
-    onDelete = force => {
+    onDelete = (force) => {
         const { firebase } = this.props
         const finish = () => {
-            firebase.deleteFunc(this.funcRef()).catch(e => {
+            firebase.deleteFunc(this.funcRef()).catch((e) => {
                 window.notificationWidget.showSnackbar(`Unable to delete: ${e.message}`)
             })
         }
@@ -329,11 +329,11 @@ class FuncViewerBase extends Component {
             : null
     }
 
-    onAddComponentToggle = e => {
+    onAddComponentToggle = (e) => {
         this.setState({ addComponentAnchorEl: e ? e.currentTarget : null })
     }
 
-    onAddComponent = component => {
+    onAddComponent = (component) => {
         const { func } = this.state
         const { firebase } = this.props
 
@@ -346,7 +346,7 @@ class FuncViewerBase extends Component {
         firebase
             .componentLatestVersion(component.data().type, component.id)
             .get()
-            .then(componentVersion => {
+            .then((componentVersion) => {
                 if (componentVersion.empty) {
                     return
                 }
