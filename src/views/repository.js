@@ -382,7 +382,7 @@ class Repository extends Component {
                     facade.cameraMode = Dronelink.CameraMode.Photo
                     facade.minCaptureInterval = 2.0
                     facade.pattern = Dronelink.FacadePattern.Horizontal
-                    facade.capturePriority = Dronelink.FacadeCapturePriority.Distance
+                    facade.capturePriority = Dronelink.CapturePriority.Distance
                     facade.boundaryFace = Dronelink.FacadeBoundaryFace.LineLeft
                     facade.verticalOverlap = 0.5
                     facade.horizontalOverlap = 0.5

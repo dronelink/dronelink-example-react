@@ -7,7 +7,7 @@ import React, { Component } from "react"
 import * as Dronelink from "dronelink-kernel"
 import "typeface-roboto"
 import { MapWidget, NotificationWidget, ComponentUtils, Utils, ComponentEditor } from "react-dronelink"
-import { MuiThemeProvider, createMuiTheme, withStyles } from "@material-ui/core/styles"
+import { MuiThemeProvider, createTheme, withStyles } from "@material-ui/core/styles"
 import { emphasize } from "@material-ui/core/styles/colorManipulator"
 import { deepPurple as ColorPrimary, pink as ColorSecondary } from "@material-ui/core/colors"
 import CssBaseline from "@material-ui/core/CssBaseline"
@@ -18,7 +18,7 @@ import { Dialog, DialogTitle, DialogContent, Button } from "@material-ui/core"
 Utils.UI.headerHeight = 64
 
 const themes = {
-    light: createMuiTheme({
+    light: createTheme({
         palette: {
             primary: {
                 main: ColorPrimary[900]
@@ -26,7 +26,7 @@ const themes = {
             secondary: ColorSecondary
         }
     }),
-    dark: createMuiTheme({
+    dark: createTheme({
         palette: {
             type: "dark",
             primary: {
@@ -37,7 +37,7 @@ const themes = {
     })
 }
 
-const styles = theme => ({
+const styles = (theme) => ({
     main: {
         position: "fixed",
         top: Utils.UI.headerHeight,
@@ -65,24 +65,24 @@ class App extends Component {
         Dronelink.Format.UnitSystem = localStorage.getItem("unitSystem") || Dronelink.UnitSystem.Imperial
     }
 
-    setTheme = name => {
+    setTheme = (name) => {
         localStorage.setItem("theme.name", name)
         //Force page reload instead of: this.setState({ themeName: name })
         //because mapbox styles get wonky....
         window.location.reload()
     }
 
-    setUnitSystem = unitSystem => {
+    setUnitSystem = (unitSystem) => {
         localStorage.setItem("unitSystem", unitSystem)
         Dronelink.Format.UnitSystem = unitSystem
         this.forceUpdate()
     }
 
-    onMapLoaded = style => {
+    onMapLoaded = (style) => {
         this.setState({ mapStyle: style })
     }
 
-    onMapModal = enabled => {
+    onMapModal = (enabled) => {
         this.setState({ mapModal: enabled })
     }
 
@@ -91,14 +91,14 @@ class App extends Component {
     }
 
     onCreate = () => {
-        ComponentUtils.createPlan(plan => {
+        ComponentUtils.createPlan((plan) => {
             this.setState({ component: plan, configurationWizard: true })
         })
     }
 
-    onChange = replacementComponent => {
+    onChange = (replacementComponent) => {
         //replacementComponent will only be set on undo/redo
-        this.setState(state => ({
+        this.setState((state) => ({
             component: replacementComponent || state.component
         }))
     }
@@ -129,7 +129,7 @@ class App extends Component {
             <MuiThemeProvider theme={themes[this.state.themeName]}>
                 <CssBaseline />
                 <NotificationWidget />
-                <MapWidget onLoaded={this.onMapLoaded} onModal={this.onMapModal}></MapWidget>
+                <MapWidget onLoaded={this.onMapLoaded} onModal={this.onMapModal} visible></MapWidget>
                 <Navigation setUnitSystem={this.setUnitSystem} setTheme={this.setTheme} themeName={this.state.themeName} />
                 {mapStyle && ( //using the map style as a key to give down-stream users a chance to re-add layers when it changes
                     <main key={mapStyle} className={classes.main} style={mapModal ? { display: "none" } : undefined}>
