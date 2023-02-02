@@ -16,7 +16,7 @@
         "file-saver": "^2.0.5",
         "firebase": "^7.24.0",
         "interactjs": "^1.10.11",
-        "jszip": "^3.7.1",
+        "jszip": "^3.8.0",
         "mapbox-gl": "^2.7.0",
         "mdi-material-ui": "^6.24.0",
         "moment": "^2.29.1",
